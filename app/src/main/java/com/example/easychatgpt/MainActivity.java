@@ -18,6 +18,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -28,76 +29,85 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
-    RecyclerView recyclerView;
-    TextView welcomeTextView;
-    EditText messageEditText;
-    ImageButton sendButton;
+
+    RecyclerView recycler_view;
+    TextView tv_welcome;
+    EditText et_msg;
+    ImageButton btn_send;
+
     List<Message> messageList;
     MessageAdapter messageAdapter;
-    public static final MediaType JSON
-            = MediaType.get("application/json; charset=utf-8");
+
+    public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     OkHttpClient client = new OkHttpClient();
+
+    private static final String MY_SECRET_KEY = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        recycler_view = findViewById(R.id.recycler_view);
+        tv_welcome = findViewById(R.id.welcome_text);
+        et_msg = findViewById(R.id.message_edit_text);
+        btn_send = findViewById(R.id.send_btn);
+
+        recycler_view.setHasFixedSize(true);
+        LinearLayoutManager manager = new LinearLayoutManager(this);
+        manager.setStackFromEnd(true);
+        recycler_view.setLayoutManager(manager);
+
         messageList = new ArrayList<>();
-
-        recyclerView = findViewById(R.id.recycler_view);
-        welcomeTextView = findViewById(R.id.welcome_text);
-        messageEditText = findViewById(R.id.message_edit_text);
-        sendButton = findViewById(R.id.send_btn);
-
-        //setup recycler view
         messageAdapter = new MessageAdapter(messageList);
-        recyclerView.setAdapter(messageAdapter);
-        LinearLayoutManager llm = new LinearLayoutManager(this);
-        llm.setStackFromEnd(true);
-        recyclerView.setLayoutManager(llm);
+        recycler_view.setAdapter(messageAdapter);
 
-        sendButton.setOnClickListener((v)->{
-            String question = messageEditText.getText().toString().trim();
-            addToChat(question,Message.SENT_BY_ME);
-            messageEditText.setText("");
-            callAPI(question);
-            welcomeTextView.setVisibility(View.GONE);
+        btn_send.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String question = et_msg.getText().toString().trim();
+                addToChat(question, Message.SENT_BY_ME);
+                et_msg.setText("");
+                callAPI(question);
+                tv_welcome.setVisibility(View.GONE);
+            }
         });
+
     }
 
-    void addToChat(String message,String sentBy){
+    void addToChat(String message, String sentBy){
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                messageList.add(new Message(message,sentBy));
+                messageList.add(new Message(message, sentBy));
                 messageAdapter.notifyDataSetChanged();
-                recyclerView.smoothScrollToPosition(messageAdapter.getItemCount());
+                recycler_view.smoothScrollToPosition(messageAdapter.getItemCount());
             }
         });
     }
 
     void addResponse(String response){
         messageList.remove(messageList.size()-1);
-        addToChat(response,Message.SENT_BY_BOT);
+        addToChat(response, Message.SENT_BY_BOT);
     }
 
     void callAPI(String question){
         //okhttp
-        messageList.add(new Message("Typing... ",Message.SENT_BY_BOT));
+        messageList.add(new Message("...", Message.SENT_BY_BOT));
 
-        JSONObject jsonBody = new JSONObject();
+        JSONObject object = new JSONObject();
         try {
-            jsonBody.put("model","text-davinci-003");
-            jsonBody.put("prompt",question);
-            jsonBody.put("max_tokens",4000);
-            jsonBody.put("temperature",0);
-        } catch (JSONException e) {
+            object.put("model", "text-davinci-003");
+            object.put("prompt", question);
+            object.put("max_tokens", 4000);
+            object.put("temperature", 0);
+        } catch (JSONException e){
             e.printStackTrace();
         }
-        RequestBody body = RequestBody.create(jsonBody.toString(),JSON);
+        RequestBody body = RequestBody.create(object.toString(), JSON);
         Request request = new Request.Builder()
                 .url("https://api.openai.com/v1/completions")
-                .header("Authorization","Bearer YOUR_API_KEY")
+                .header("Authorization", "Bearer "+MY_SECRET_KEY)
                 .post(body)
                 .build();
 
@@ -110,34 +120,22 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if(response.isSuccessful()){
-                    JSONObject  jsonObject = null;
+                    JSONObject jsonObject = null;
                     try {
                         jsonObject = new JSONObject(response.body().string());
                         JSONArray jsonArray = jsonObject.getJSONArray("choices");
                         String result = jsonArray.getJSONObject(0).getString("text");
                         addResponse(result.trim());
-                    } catch (JSONException e) {
+                    }catch (JSONException e){
                         e.printStackTrace();
                     }
-
-
-                }else{
-                    addResponse("Failed to load response due to "+response.body().toString());
+                } else {
+                    addResponse("Failed to load response due to "+response.body().string());
                 }
             }
         });
-
-
-
-
-
     }
-
-
 }
-
-
-
 
 
 

@@ -11,32 +11,33 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
-public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MyViewHolder> {
+public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHolder> {
 
     List<Message> messageList;
+
     public MessageAdapter(List<Message> messageList) {
         this.messageList = messageList;
     }
 
     @NonNull
     @Override
-    public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View chatView = LayoutInflater.from(parent.getContext()).inflate(R.layout.chat_item,null);
-        MyViewHolder myViewHolder = new MyViewHolder(chatView);
-        return myViewHolder;
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.chat_item, null);
+        ViewHolder holder = new ViewHolder(view);
+        return holder;
     }
 
     @Override
-    public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Message message = messageList.get(position);
         if(message.getSentBy().equals(Message.SENT_BY_ME)){
-            holder.leftChatView.setVisibility(View.GONE);
-            holder.rightChatView.setVisibility(View.VISIBLE);
-            holder.rightTextView.setText(message.getMessage());
-        }else{
-            holder.rightChatView.setVisibility(View.GONE);
-            holder.leftChatView.setVisibility(View.VISIBLE);
-            holder.leftTextView.setText(message.getMessage());
+            holder.left_chat_view.setVisibility(View.GONE);
+            holder.right_chat_view.setVisibility(View.VISIBLE);
+            holder.right_chat_tv.setText(message.getMessage());
+        } else {
+            holder.right_chat_view.setVisibility(View.GONE);
+            holder.left_chat_view.setVisibility(View.VISIBLE);
+            holder.left_chat_tv.setText(message.getMessage());
         }
     }
 
@@ -45,16 +46,16 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MyViewHo
         return messageList.size();
     }
 
-    public class MyViewHolder extends RecyclerView.ViewHolder{
-        LinearLayout leftChatView,rightChatView;
-        TextView leftTextView,rightTextView;
+    public class ViewHolder extends RecyclerView.ViewHolder{
+        LinearLayout left_chat_view, right_chat_view;
+        TextView left_chat_tv, right_chat_tv;
 
-        public MyViewHolder(@NonNull View itemView) {
+        public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            leftChatView  = itemView.findViewById(R.id.left_chat_view);
-            rightChatView = itemView.findViewById(R.id.right_chat_view);
-            leftTextView = itemView.findViewById(R.id.left_chat_text_view);
-            rightTextView = itemView.findViewById(R.id.right_chat_text_view);
+            left_chat_view = itemView.findViewById(R.id.left_chat_view);
+            right_chat_view = itemView.findViewById(R.id.right_chat_view);
+            left_chat_tv = itemView.findViewById(R.id.left_chat_tv);
+            right_chat_tv = itemView.findViewById(R.id.right_chat_tv);
         }
     }
 }
